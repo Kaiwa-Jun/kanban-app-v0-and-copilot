@@ -24,32 +24,65 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function Component() {
   const [lists, setLists] = useState([
     {
       title: "To Do",
       cards: [
-        "Design Landing Page",
-        "Implement Authentication",
-        "Build Dashboard",
+        {
+          title: "Design Landing Page",
+          description: "Create a modern and responsive landing page design.",
+        },
+        {
+          title: "Implement Authentication",
+          description: "Integrate email and social authentication.",
+        },
+        {
+          title: "Build Dashboard",
+          description: "Design and develop the admin dashboard.",
+        },
       ],
     },
-    { title: "In Progress", cards: ["Integrate API", "Optimize Performance"] },
-    { title: "Done", cards: ["Set up CI/CD"] },
+    {
+      title: "In Progress",
+      cards: [
+        {
+          title: "Integrate API",
+          description: "Connect the app to the backend API.",
+        },
+        {
+          title: "Optimize Performance",
+          description: "Improve app speed and responsiveness.",
+        },
+      ],
+    },
+    {
+      title: "Done",
+      cards: [
+        {
+          title: "Set up CI/CD",
+          description: "Implement continuous integration and deployment.",
+        },
+      ],
+    },
   ]);
 
+  const [newCardTitle, setNewCardTitle] = useState("");
+  const [newCardDescription, setNewCardDescription] = useState("");
+  const [addingCardIndex, setAddingCardIndex] = useState<number | null>(null);
+
   const addCard = (listIndex: number) => {
-    const newCard = `New Card ${lists[listIndex].cards.length + 1}`;
+    const newCard = { title: newCardTitle, description: newCardDescription };
     const newLists = lists.map((list, index) =>
       index === listIndex ? { ...list, cards: [...list.cards, newCard] } : list
     );
     setLists(newLists);
-  };
-
-  const addList = () => {
-    const newList = { title: `New List ${lists.length + 1}`, cards: [] };
-    setLists([...lists, newList]);
+    setNewCardTitle("");
+    setNewCardDescription("");
+    setAddingCardIndex(null);
   };
 
   return (
@@ -61,7 +94,6 @@ export default function Component() {
             size="sm"
             variant="outline"
             className="ml-auto rounded-md bg-muted px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-muted/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-            onClick={addList}
           >
             Add List
           </Button>
@@ -89,24 +121,45 @@ export default function Component() {
                       as="div"
                       className="cursor-pointer rounded-lg border bg-card-background p-4 shadow-sm transition-all hover:bg-accent hover:text-accent-foreground"
                     >
-                      <h3 className="text-base font-medium">{card}</h3>
+                      <h3 className="text-base font-medium">{card.title}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Card content goes here.
+                        {card.description}
                       </p>
                     </Card>
                   ))}
                 </div>
               </ScrollArea>
-              <div className="flex items-center gap-3">
+              {addingCardIndex === listIndex ? (
+                <div className="flex flex-col gap-3">
+                  <Input
+                    placeholder="Card Title"
+                    value={newCardTitle}
+                    onChange={(e) => setNewCardTitle(e.target.value)}
+                  />
+                  <Textarea
+                    placeholder="Card Description"
+                    value={newCardDescription}
+                    onChange={(e) => setNewCardDescription(e.target.value)}
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="w-full rounded-md bg-card-background px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                    onClick={() => addCard(listIndex)}
+                  >
+                    追加
+                  </Button>
+                </div>
+              ) : (
                 <Button
                   size="sm"
                   variant="ghost"
                   className="w-full rounded-md bg-card-background px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                  onClick={() => addCard(listIndex)}
+                  onClick={() => setAddingCardIndex(listIndex)}
                 >
                   Add Card
                 </Button>
-              </div>
+              )}
             </Card>
           ))}
         </div>
