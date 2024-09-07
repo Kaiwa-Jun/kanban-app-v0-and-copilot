@@ -73,6 +73,8 @@ export default function Component() {
   const [newCardTitle, setNewCardTitle] = useState("");
   const [newCardDescription, setNewCardDescription] = useState("");
   const [addingCardIndex, setAddingCardIndex] = useState<number | null>(null);
+  const [newListTitle, setNewListTitle] = useState("");
+  const [addingList, setAddingList] = useState(false);
 
   const addCard = (listIndex: number) => {
     const newCard = { title: newCardTitle, description: newCardDescription };
@@ -86,8 +88,10 @@ export default function Component() {
   };
 
   const addList = () => {
-    const newList = { title: `New List ${lists.length + 1}`, cards: [] };
+    const newList = { title: newListTitle, cards: [] };
     setLists([...lists, newList]);
+    setNewListTitle("");
+    setAddingList(false);
   };
 
   return (
@@ -95,14 +99,34 @@ export default function Component() {
       <main className="flex w-full flex-1 flex-col gap-8 p-6 sm:p-10 md:gap-12">
         <div className="flex items-center gap-4">
           <h1 className="text-3xl font-bold">Project Board</h1>
-          <Button
-            size="sm"
-            variant="outline"
-            className="ml-auto rounded-md bg-muted px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-muted/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-            onClick={addList}
-          >
-            Add List
-          </Button>
+          <div className="ml-auto flex items-center gap-3">
+            {addingList ? (
+              <>
+                <Input
+                  placeholder="List Title"
+                  value={newListTitle}
+                  onChange={(e) => setNewListTitle(e.target.value)}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-md bg-muted px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-muted/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                  onClick={addList}
+                >
+                  追加
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-md bg-muted px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-muted/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                onClick={() => setAddingList(true)}
+              >
+                Add List
+              </Button>
+            )}
+          </div>
         </div>
         <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {lists.map((list, listIndex) => (
