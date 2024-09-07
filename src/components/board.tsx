@@ -85,6 +85,11 @@ export default function Component() {
     setAddingCardIndex(null);
   };
 
+  const addList = () => {
+    const newList = { title: `New List ${lists.length + 1}`, cards: [] };
+    setLists([...lists, newList]);
+  };
+
   return (
     <div className="flex min-h-screen w-full bg-background">
       <main className="flex w-full flex-1 flex-col gap-8 p-6 sm:p-10 md:gap-12">
@@ -94,6 +99,7 @@ export default function Component() {
             size="sm"
             variant="outline"
             className="ml-auto rounded-md bg-muted px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-muted/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+            onClick={addList}
           >
             Add List
           </Button>
