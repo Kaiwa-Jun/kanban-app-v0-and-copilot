@@ -20,6 +20,12 @@ To read more about using these font, please visit the Next.js documentation:
 "use client";
 
 import React, { useState } from "react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,22 +33,20 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function Component() {
+const Board = () => {
   const [lists, setLists] = useState([
     {
       title: "To Do",
       cards: [
         {
+          id: "1",
           title: "Design Landing Page",
           description: "Create a modern and responsive landing page design.",
         },
         {
+          id: "2",
           title: "Implement Authentication",
           description: "Integrate email and social authentication.",
-        },
-        {
-          title: "Build Dashboard",
-          description: "Design and develop the admin dashboard.",
         },
       ],
     },
@@ -50,21 +54,14 @@ export default function Component() {
       title: "In Progress",
       cards: [
         {
+          id: "3",
           title: "Integrate API",
           description: "Connect the app to the backend API.",
         },
         {
+          id: "4",
           title: "Optimize Performance",
           description: "Improve app speed and responsiveness.",
-        },
-      ],
-    },
-    {
-      title: "Done",
-      cards: [
-        {
-          title: "Set up CI/CD",
-          description: "Implement continuous integration and deployment.",
         },
       ],
     },
@@ -77,7 +74,11 @@ export default function Component() {
   const [addingList, setAddingList] = useState(false);
 
   const addCard = (listIndex: number) => {
-    const newCard = { title: newCardTitle, description: newCardDescription };
+    const newCard = {
+      id: `${Date.now()}`,
+      title: newCardTitle,
+      description: newCardDescription,
+    };
     const newLists = lists.map((list, index) =>
       index === listIndex ? { ...list, cards: [...list.cards, newCard] } : list
     );
@@ -92,6 +93,57 @@ export default function Component() {
     setLists([...lists, newList]);
     setNewListTitle("");
     setAddingList(false);
+  };
+
+  const onDragEnd = (result: DropResult) => {
+    console.log("onDragEnd", result); // デバッグ用ログ出力
+    const { source, destination, type } = result;
+    if (!destination) {
+      console.log("No destination found");
+      return;
+    }
+    console.log("Source:", source);
+    console.log("Destination:", destination);
+
+    if (type === "list") {
+      const newLists = Array.from(lists);
+      const [movedList] = newLists.splice(source.index, 1);
+      newLists.splice(destination.index, 0, movedList);
+      setLists(newLists);
+    } else {
+      const sourceListIndex = parseInt(source.droppableId);
+      const destinationListIndex = parseInt(destination.droppableId);
+      console.log("Source List Index:", sourceListIndex);
+      console.log("Destination List Index:", destinationListIndex);
+
+      if (sourceListIndex === destinationListIndex) {
+        const newCards = Array.from(lists[sourceListIndex].cards);
+        const [movedCard] = newCards.splice(source.index, 1);
+        newCards.splice(destination.index, 0, movedCard);
+        const newLists = lists.map((list, index) => {
+          if (index === sourceListIndex) {
+            return { ...list, cards: newCards };
+          }
+          return list;
+        });
+        setLists(newLists);
+      } else {
+        const sourceCards = Array.from(lists[sourceListIndex].cards);
+        const destinationCards = Array.from(lists[destinationListIndex].cards);
+        const [movedCard] = sourceCards.splice(source.index, 1);
+        destinationCards.splice(destination.index, 0, movedCard);
+        const newLists = lists.map((list, index) => {
+          if (index === sourceListIndex) {
+            return { ...list, cards: sourceCards };
+          }
+          if (index === destinationListIndex) {
+            return { ...list, cards: destinationCards };
+          }
+          return list;
+        });
+        setLists(newLists);
+      }
+    }
   };
 
   return (
@@ -128,72 +180,123 @@ export default function Component() {
             )}
           </div>
         </div>
-        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {lists.map((list, listIndex) => (
-            <Card
-              key={listIndex}
-              className="flex flex-col gap-6 rounded-lg border bg-card p-6 shadow-sm"
-            >
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-semibold">{list.title}</h2>
-                <Badge
-                  variant="outline"
-                  className="ml-auto rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
-                >
-                  {list.cards.length}
-                </Badge>
-              </div>
-              <ScrollArea className="flex-1">
-                <div className="grid gap-4">
-                  {list.cards.map((card, cardIndex) => (
-                    <Card
-                      key={cardIndex}
-                      as="div"
-                      className="cursor-pointer rounded-lg border bg-card-background p-4 shadow-sm transition-all hover:bg-accent hover:text-accent-foreground"
-                    >
-                      <h3 className="text-base font-medium">{card.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {card.description}
-                      </p>
-                    </Card>
-                  ))}
-                </div>
-              </ScrollArea>
-              {addingCardIndex === listIndex ? (
-                <div className="flex flex-col gap-3">
-                  <Input
-                    placeholder="Card Title"
-                    value={newCardTitle}
-                    onChange={(e) => setNewCardTitle(e.target.value)}
-                  />
-                  <Textarea
-                    placeholder="Card Description"
-                    value={newCardDescription}
-                    onChange={(e) => setNewCardDescription(e.target.value)}
-                  />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full rounded-md bg-card-background px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                    onClick={() => addCard(listIndex)}
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="board" type="list" direction="horizontal">
+            {(provided) => (
+              <div
+                className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+              >
+                {lists.map((list, listIndex) => (
+                  <Draggable
+                    key={listIndex}
+                    draggableId={`list-${listIndex}`}
+                    index={listIndex}
                   >
-                    追加
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="w-full rounded-md bg-card-background px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                  onClick={() => setAddingCardIndex(listIndex)}
-                >
-                  Add Card
-                </Button>
-              )}
-            </Card>
-          ))}
-        </div>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        <Card className="flex flex-col gap-6 rounded-lg border bg-card p-6 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <h2 className="text-xl font-semibold">
+                              {list.title}
+                            </h2>
+                            <Badge
+                              variant="outline"
+                              className="ml-auto rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
+                            >
+                              {list.cards.length}
+                            </Badge>
+                          </div>
+                          <ScrollArea className="flex-1">
+                            <Droppable droppableId={`${listIndex}`} type="card">
+                              {(provided) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.droppableProps}
+                                  className="grid gap-4"
+                                >
+                                  {list.cards.map((card, cardIndex) => (
+                                    <Draggable
+                                      key={card.id}
+                                      draggableId={card.id}
+                                      index={cardIndex}
+                                    >
+                                      {(provided) => (
+                                        <div
+                                          ref={provided.innerRef}
+                                          {...provided.draggableProps}
+                                          {...provided.dragHandleProps}
+                                          className="cursor-pointer rounded-lg border bg-card-background p-4 shadow-sm transition-all hover:bg-accent hover:text-accent-foreground"
+                                          style={provided.draggableProps.style}
+                                        >
+                                          <h3 className="text-base font-medium">
+                                            {card.title}
+                                          </h3>
+                                          <p className="text-sm text-muted-foreground">
+                                            {card.description}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  ))}
+                                  {provided.placeholder}
+                                </div>
+                              )}
+                            </Droppable>
+                          </ScrollArea>
+                          {addingCardIndex === listIndex ? (
+                            <div className="flex flex-col gap-3">
+                              <Input
+                                placeholder="Card Title"
+                                value={newCardTitle}
+                                onChange={(e) =>
+                                  setNewCardTitle(e.target.value)
+                                }
+                              />
+                              <Textarea
+                                placeholder="Card Description"
+                                value={newCardDescription}
+                                onChange={(e) =>
+                                  setNewCardDescription(e.target.value)
+                                }
+                              />
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="w-full rounded-md bg-card-background px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                                onClick={() => addCard(listIndex)}
+                              >
+                                追加
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="w-full rounded-md bg-card-background px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                              onClick={() => setAddingCardIndex(listIndex)}
+                            >
+                              Add Card
+                            </Button>
+                          )}
+                        </Card>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       </main>
     </div>
   );
-}
+};
+
+export default Board;
