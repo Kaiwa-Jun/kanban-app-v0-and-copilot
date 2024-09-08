@@ -27,7 +27,7 @@ import {
   DropResult,
 } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card"; // 修正
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -142,10 +142,12 @@ const Board = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      <main className="flex w-full flex-1 flex-col gap-8 p-6 sm:p-10 md:gap-12">
+    <div className="flex min-h-screen w-full bg-gradient-to-b from-blue-500 to-blue-300">
+      <header className="bg-blue-700 text-white p-4">
+        <h1 className="text-3xl font-bold">Project Board</h1>
+      </header>
+      <main className="flex w-full flex-1 flex-col gap-8 p-6 sm:p-10 md:gap-12 bg-gradient-to-b from-blue-300 to-blue-100">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold">Project Board</h1>
           <div className="ml-auto flex items-center gap-3">
             {addingList ? (
               <>
