@@ -32,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { v4 as uuidv4 } from "uuid";
 
 const Board = () => {
   const [lists, setLists] = useState([
@@ -75,7 +76,7 @@ const Board = () => {
 
   const addCard = (listIndex: number) => {
     const newCard = {
-      id: `${Date.now()}`,
+      id: uuidv4(),
       title: newCardTitle,
       description: newCardDescription,
     };
@@ -96,14 +97,10 @@ const Board = () => {
   };
 
   const onDragEnd = (result: DropResult) => {
-    console.log("onDragEnd", result); // デバッグ用ログ出力
     const { source, destination, type } = result;
     if (!destination) {
-      console.log("No destination found");
       return;
     }
-    console.log("Source:", source);
-    console.log("Destination:", destination);
 
     if (type === "list") {
       const newLists = Array.from(lists);
@@ -113,8 +110,6 @@ const Board = () => {
     } else {
       const sourceListIndex = parseInt(source.droppableId);
       const destinationListIndex = parseInt(destination.droppableId);
-      console.log("Source List Index:", sourceListIndex);
-      console.log("Destination List Index:", destinationListIndex);
 
       if (sourceListIndex === destinationListIndex) {
         const newCards = Array.from(lists[sourceListIndex].cards);
